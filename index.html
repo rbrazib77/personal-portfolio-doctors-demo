@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Book Your Appointment</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/css/style.css" />
+  </head>
+  <body>
+    <div class="page-container">
+      <!-- Header -->
+      <div class="header-section">
+        <div class="doctor-info">
+          <div class="doctor-avatar">
+            <img src="assets/images/avata-doctor.png" alt="avata-doctor" />
+          </div>
+          <div class="doctor-details">
+            <h2>Prof. Dr. Md. Shafiqul Islam</h2>
+            <p><i class="fas fa-stethoscope"></i> MBBS MS (Neurosurgery)</p>
+            <a href="doctor-profile.html">Details View</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progress Steps -->
+      <div class="steps-container">
+        <h3 class="step-headline">Booking Appointment Details</h3>
+        <div class="steps-wrapper">
+          <div class="step-item active" data-step="1">
+            <div class="step-circle">
+              <span class="step-number">1</span>
+            </div>
+            <div class="step-label">Select Specialty</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step-item" data-step="2">
+            <div class="step-circle">
+              <span class="step-number">2</span>
+            </div>
+            <div class="step-label">Choose Date & Time</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step-item" data-step="3">
+            <div class="step-circle">
+              <span class="step-number">3</span>
+            </div>
+            <div class="step-label">Patient Details</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step-item" data-step="4">
+            <div class="step-circle">
+              <span class="step-number">4</span>
+            </div>
+            <div class="step-label">Confirmation</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="content-card" id="mainContent">
+        <!-- Dynamic content will load here -->
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      // Booking System State
+      const bookingState = {
+        currentStep: 1,
+        specialty: null,
+        date: null,
+        timeSlot: null,
+        patientInfo: {},
+      };
+
+      // Specialty Options
+      const specialties = [
+        { id: "general", name: "General Medicine", icon: "fa-user-doctor" },
+        { id: "cardiology", name: "Cardiology", icon: "fa-heart-pulse" },
+        { id: "neurology", name: "Neurology", icon: "fa-brain" },
+        { id: "pediatrics", name: "Pediatrics", icon: "fa-baby" },
+        { id: "orthopedics", name: "Orthopedics", icon: "fa-bone" },
+        { id: "dermatology", name: "Dermatology", icon: "fa-hand-dots" },
+      ];
+
+      // Available Time Slots
+      const timeSlots = {
+        morning: [
+          "09:00 AM",
+          "09:30 AM",
+          "10:00 AM",
+          "10:30 AM",
+          "11:00 AM",
+          "11:30 AM",
+        ],
+        afternoon: [
+          "02:00 PM",
+          "02:30 PM",
+          "03:00 PM",
+          "03:30 PM",
+          "04:00 PM",
+          "04:30 PM",
+        ],
+        evening: ["06:00 PM", "06:30 PM", "07:00 PM", "07:30 PM", "08:00 PM"],
+      };
+
+      // Initialize
+      renderStep(1);
+
+      // Update Progress
+      function updateProgress(step) {
+        const steps = document.querySelectorAll(".step-item");
+        steps.forEach((item, index) => {
+          const stepNum = index + 1;
+          item.classList.remove("active", "completed");
+
+          if (stepNum < step) {
+            item.classList.add("completed");
+          } else if (stepNum === step) {
+            item.classList.add("active");
+          }
+        });
+      }
+
+      // Render Step
+      function renderStep(step) {
+        bookingState.currentStep = step;
+        updateProgress(step);
+
+        const content = document.getElementById("mainContent");
+
+        switch (step) {
+          case 1:
+            renderSpecialtySelection();
+            break;
+          case 2:
+            renderDateTimeSelection();
+            break;
+          case 3:
+            renderPatientDetails();
+            break;
+          case 4:
+            renderConfirmation();
+            break;
+          case 5:
+            renderSuccess();
+            break;
+        }
+      }
+
+      // Step 1: Specialty Selection
+      function renderSpecialtySelection() {
+        const content = document.getElementById("mainContent");
+        content.innerHTML = `
+                <h3 class="page-title"><i class="fas fa-clipboard-list"></i> Select Your Consultation Type</h3>
+                <div class="specialty-grid" id="specialtyGrid">
+                    ${specialties
+                      .map(
+                        (spec) => `
+                        <div class="specialty-card ${bookingState.specialty === spec.id ? "selected" : ""}" 
+                             onclick="selectSpecialty('${spec.id}')">
+                            <div class="specialty-icon">
+                                <i class="fas ${spec.icon}"></i>
+                            </div>
+                            <div class="specialty-name">${spec.name}</div>
+                        </div>
+                    `,
+                      )
+                      .join("")}
+                </div>
+                <div class="text-end">
+                    <button class="btn btn-action btn-primary-custom" onclick="goToStep(2)" 
+                            ${!bookingState.specialty ? "disabled" : ""}>
+                        Continue <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            `;
+      }
+
+      function selectSpecialty(specialtyId) {
+        bookingState.specialty = specialtyId;
+        renderSpecialtySelection();
+      }
+
+      // Step 2: Date & Time Selection
+      function renderDateTimeSelection() {
+        const dates = getNextDays(7);
+        const content = document.getElementById("mainContent");
+
+        content.innerHTML = `
+                <h3 class="page-title"><i class="fas fa-calendar-days"></i> Choose Your Appointment Date & Time</h3>
+                
+                <h5 style="color: var(--primary-color); margin-bottom: 15px;">Select Date</h5>
+                <div class="date-selector">
+                    ${dates
+                      .map(
+                        (date) => `
+                        <div class="date-btn ${bookingState.date === date.full ? "selected" : ""}" 
+                             onclick="selectDate('${date.full}')">
+                            <div style="font-size: 12px; ">${date.day}</div>
+                            <div style="font-size: 20px; font-weight: bold;">${date.date}</div>
+                            <div style="font-size: 11px; ">${date.month}</div>
+                        </div>
+                    `,
+                      )
+                      .join("")}
+                </div>
+
+                ${
+                  bookingState.date
+                    ? `
+                    <h5 style="color: var(--primary-color); margin-top: 30px; margin-bottom: 15px;">Select Time</h5>
+                    
+                    <h6 style="color: #7f8c8d; margin-top: 20px;">Morning</h6>
+                    <div class="time-slots">
+                        ${timeSlots.morning
+                          .map(
+                            (time) => `
+                            <div class="time-slot ${bookingState.timeSlot === time ? "selected" : ""}" 
+                                 onclick="selectTime('${time}')">
+                                <i class="fas fa-clock"></i> ${time}
+                            </div>
+                        `,
+                          )
+                          .join("")}
+                    </div>
+
+                    <h6 style="color: #7f8c8d; margin-top: 20px;">Afternoon</h6>
+                    <div class="time-slots">
+                        ${timeSlots.afternoon
+                          .map(
+                            (time) => `
+                            <div class="time-slot ${bookingState.timeSlot === time ? "selected" : ""}" 
+                                 onclick="selectTime('${time}')">
+                                <i class="fas fa-clock"></i> ${time}
+                            </div>
+                        `,
+                          )
+                          .join("")}
+                    </div>
+
+                    <h6 style="color: #7f8c8d; margin-top: 20px;">Evening</h6>
+                    <div class="time-slots">
+                        ${timeSlots.evening
+                          .map(
+                            (time) => `
+                            <div class="time-slot ${bookingState.timeSlot === time ? "selected" : ""}" 
+                                 onclick="selectTime('${time}')">
+                                <i class="fas fa-clock"></i> ${time}
+                            </div>
+                        `,
+                          )
+                          .join("")}
+                    </div>
+                `
+                    : ""
+                }
+
+                <div class="d-flex justify-content-between mt-4">
+                    <button class="btn btn-action btn-secondary-custom" onclick="goToStep(1)">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <button class="btn btn-action btn-primary-custom" 
+                            onclick="goToStep(3)" 
+                            ${!bookingState.date || !bookingState.timeSlot ? "disabled" : ""}>
+                        Continue <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            `;
+      }
+
+      function selectDate(date) {
+        bookingState.date = date;
+        bookingState.timeSlot = null; // Reset time selection
+        renderDateTimeSelection();
+      }
+
+      function selectTime(time) {
+        bookingState.timeSlot = time;
+        renderDateTimeSelection();
+      }
+
+      // Step 3: Patient Details
+      function renderPatientDetails() {
+        const content = document.getElementById("mainContent");
+        content.innerHTML = `
+                <h3 class="page-title"><i class="fas fa-user"></i> Patient Information</h3>
+                
+                <form id="patientForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Full Name <span class="required-star">*</span></label>
+                                <input type="text" class="form-control" id="patientName" 
+                                       value="${bookingState.patientInfo.name || ""}" 
+                                       placeholder="Enter your full name">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Phone Number <span class="required-star">*</span></label>
+                                <input type="tel" class="form-control" id="patientPhone" 
+                                       value="${bookingState.patientInfo.phone || ""}" 
+                                       placeholder="Enter phone number">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Email Address <span class="required-star">*</span></label>
+                                <input type="email" class="form-control" id="patientEmail" 
+                                       value="${bookingState.patientInfo.email || ""}" 
+                                       placeholder="Enter email address">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label">Age <span class="required-star">*</span></label>
+                                <input type="number" class="form-control" id="patientAge" 
+                                       value="${bookingState.patientInfo.age || ""}" 
+                                       placeholder="Age">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label">Gender <span class="required-star">*</span></label>
+                                <select class="form-select" id="patientGender">
+                                    <option value="">Select</option>
+                                    <option value="male" ${bookingState.patientInfo.gender === "male" ? "selected" : ""}>Male</option>
+                                    <option value="female" ${bookingState.patientInfo.gender === "female" ? "selected" : ""}>Female</option>
+                                    <option value="other" ${bookingState.patientInfo.gender === "other" ? "selected" : ""}>Other</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Address</label>
+                        <textarea class="form-control" id="patientAddress" rows="3" 
+                                  placeholder="Enter your full address">${bookingState.patientInfo.address || ""}</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Reason for Visit</label>
+                        <textarea class="form-control" id="visitReason" rows="6" 
+                                  placeholder="Brief description of your health concern">${bookingState.patientInfo.reason || ""}</textarea>
+                    </div>
+                </form>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <button class="btn btn-action btn-secondary-custom" onclick="goToStep(2)">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <button class="btn btn-action btn-primary-custom" onclick="savePatientDetails()">
+                        Continue <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            `;
+      }
+
+      function savePatientDetails() {
+        // Save without validation (backend will validate)
+        bookingState.patientInfo = {
+          name: document.getElementById("patientName").value,
+          phone: document.getElementById("patientPhone").value,
+          email: document.getElementById("patientEmail").value,
+          age: document.getElementById("patientAge").value,
+          gender: document.getElementById("patientGender").value,
+          address: document.getElementById("patientAddress").value,
+          reason: document.getElementById("visitReason").value,
+        };
+        goToStep(4);
+      }
+
+      // Step 4: Confirmation
+      function renderConfirmation() {
+        const specialtyName =
+          specialties.find((s) => s.id === bookingState.specialty)?.name || "";
+        const content = document.getElementById("mainContent");
+
+        content.innerHTML = `
+                <h3 class="page-title"><i class="fas fa-check-circle"></i> Review Your Appointment</h3>
+                
+                <div class="summary-box">
+                    <h5 style="color: var(--primary-color); margin-bottom: 20px;">Appointment Details</h5>
+                    <div class="summary-item">
+                        <span class="summary-label"><i class="fas fa-stethoscope"></i> Consultation Type</span>
+                        <span class="summary-value">${specialtyName}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label"><i class="fas fa-calendar"></i> Date</span>
+                        <span class="summary-value">${bookingState.date}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label"><i class="fas fa-clock"></i> Time</span>
+                        <span class="summary-value">${bookingState.timeSlot}</span>
+                    </div>
+                </div>
+
+                <div class="summary-box">
+                    <h5 style="color: var(--primary-color); margin-bottom: 20px;">Patient Information</h5>
+                    <div class="summary-item">
+                        <span class="summary-label"><i class="fas fa-user"></i> Name</span>
+                        <span class="summary-value">${bookingState.patientInfo.name}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label"><i class="fas fa-phone"></i> Phone</span>
+                        <span class="summary-value">${bookingState.patientInfo.phone}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label"><i class="fas fa-envelope"></i> Email</span>
+                        <span class="summary-value">${bookingState.patientInfo.email}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label"><i class="fas fa-calendar-days"></i> Age</span>
+                        <span class="summary-value">${bookingState.patientInfo.age} years</span>
+                    </div>
+                </div>
+
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> Please review all details carefully before confirming your appointment.
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <button class="btn btn-action btn-secondary-custom" onclick="goToStep(3)">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <button class="btn btn-action btn-primary-custom" onclick="confirmBooking()">
+                        <i class="fas fa-check"></i> Confirm Appointment
+                    </button>
+                </div>
+            `;
+      }
+
+      // Step 5: Success
+      function renderSuccess() {
+        const appointmentId =
+          "APT" + Math.random().toString(36).substr(2, 9).toUpperCase();
+        const content = document.getElementById("mainContent");
+
+        content.innerHTML = `
+                <div class="text-center">
+                    <div class="success-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h2 class="success-title">Appointment Confirmed!</h2>
+                    <p class="success-message">Your appointment has been successfully booked.</p>
+                    
+                    <div class="appointment-id">
+                        <strong>Appointment ID:</strong> <span style="color: var(--secondary-color); font-size: 20px;">${appointmentId}</span>
+                    </div>
+
+                    <div class="summary-box" style="max-width: 500px; margin: 0 auto 30px;">
+                        <div class="summary-item">
+                            <span class="summary-label">Date</span>
+                            <span class="summary-value">${bookingState.date}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Time</span>
+                            <span class="summary-value">${bookingState.timeSlot}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Patient</span>
+                            <span class="summary-value">${bookingState.patientInfo.name}</span>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-success">
+                        <i class="fas fa-envelope"></i> A confirmation email has been sent to <strong>${bookingState.patientInfo.email}</strong>
+                    </div>
+
+                    <div class="mt-4">
+                        <button class="btn btn-action btn-primary-custom me-2" onclick="window.print()">
+                            <i class="fas fa-print"></i> Print Details
+                        </button>
+                        <button class="btn btn-action btn-secondary-custom" onclick="location.reload()">
+                            <i class="fas fa-plus"></i> Book Another
+                        </button>
+                    </div>
+                </div>
+            `;
+      }
+
+      // Confirm Booking
+      function confirmBooking() {
+        // Here you would send data to backend
+        const bookingData = {
+          specialty: bookingState.specialty,
+          date: bookingState.date,
+          time: bookingState.timeSlot,
+          patient: bookingState.patientInfo,
+        };
+
+        console.log("Booking Data:", bookingData);
+
+        // Submit to backend here
+        // fetch('/api/appointments', { method: 'POST', body: JSON.stringify(bookingData) })
+
+        goToStep(5);
+      }
+
+      // Navigation
+      function goToStep(step) {
+        renderStep(step);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      // Helper: Get next 7 days
+      function getNextDays(count) {
+        const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        const months = [
+          "Jan",
+          "Feb",
+          "Mar",
+          "Apr",
+          "May",
+          "Jun",
+          "Jul",
+          "Aug",
+          "Sep",
+          "Oct",
+          "Nov",
+          "Dec",
+        ];
+        const dates = [];
+
+        for (let i = 0; i < count; i++) {
+          const date = new Date();
+          date.setDate(date.getDate() + i);
+          dates.push({
+            day: days[date.getDay()],
+            date: date.getDate(),
+            month: months[date.getMonth()],
+            full: `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`,
+          });
+        }
+        return dates;
+      }
+    </script>
+  </body>
+</html>
